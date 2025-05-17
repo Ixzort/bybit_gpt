@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
   title: Bybit Crypto Assistant API
-  version: 1.0.0
-  description: API для работы с портфелем и торговлей на Bybit Testnet
+  version: 1.1.0
+  description: API для работы с портфелем, торговлей и аналитикой на Bybit Testnet
 servers:
   - url: https://bybit-gpt-1.onrender.com
 components:
@@ -22,6 +22,20 @@ components:
       required:
         - symbol
         - amount
+    BuyResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        order:
+          type: object
+    SellResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        order:
+          type: object
     PnLResponse:
       type: object
       properties:
@@ -33,24 +47,73 @@ components:
           type: number
         pnl_percent:
           type: number
+    PortfolioResponse:
+      type: object
+      properties:
+        portfolio:
+          type: array
+          items:
+            type: object
+            properties:
+              coin:
+                type: string
+              wallet_balance:
+                type: number
+              available_balance:
+                type: number
+    AllocationResponse:
+      type: object
+      properties:
+        portfolio_distribution:
+          type: array
+          items:
+            type: object
+            properties:
+              coin:
+                type: string
+              usd_value:
+                type: number
+              percent:
+                type: number
+    UndervaluedResponse:
+      type: object
+      properties:
+        undervalued_assets:
+          type: array
+          items:
+            type: object
+            properties:
+              coin:
+                type: string
+              usd_value:
+                type: number
+              percent:
+                type: number
+    SuggestionsResponse:
+      type: object
+      properties:
+        suggested_buys:
+          type: array
+          items:
+            type: object
 security:
   - bearerAuth: []
 paths:
   /portfolio:
     get:
       summary: Баланс портфеля
-      description: Получить текущие балансы портфеля через Bybit Testnet
+      operationId: getPortfolio
       responses:
         '200':
           description: Балансы портфеля
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/PortfolioResponse'
   /buy:
     post:
-      summary: Купить по рынку
-      description: Осуществить рыночную покупку по заданному символу и сумме (в котируемой валюте)
+      summary: Купить актив
+      operationId: buyAsset
       requestBody:
         required: true
         content:
@@ -63,11 +126,11 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/BuyResponse'
   /sell:
     post:
-      summary: Продать по рынку
-      description: Осуществить рыночную продажу по заданному символу и сумме (в базовой валюте)
+      summary: Продать актив
+      operationId: sellAsset
       requestBody:
         required: true
         content:
@@ -80,11 +143,11 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/SellResponse'
   /pnl:
     get:
       summary: Расчет PnL
-      description: Получить текущий PnL (разница между начальным и текущим балансом)
+      operationId: getPnl
       responses:
         '200':
           description: Значение PnL
@@ -92,4 +155,40 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PnLResponse'
+  /allocation:
+    get:
+      summary: Распределение портфеля
+      operationId: getAllocation
+      responses:
+        '200':
+          description: Портфель в процентах
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AllocationResponse'
+  /undervalued:
+    get:
+      summary: Недооценённые активы
+      operationId: getUndervaluedAssets
+      responses:
+        '200':
+          description: Монеты с маленьким весом в портфеле
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UndervaluedResponse'
+  /low_performers:
+    get:
+      summary: Монеты на дне
+      operationId: getSuggestions
+      responses:
+        '200':
+          description: Монеты с наибольшим падением за 24ч
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuggestionsResponse'
+
+
+
 
