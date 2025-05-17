@@ -1,0 +1,19 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Трейдинг Bybit Testnet",
+  "name_for_model": "bybitTestnet",
+  "description_for_human": "Плагин для просмотра портфеля и PnL на Bybit Testnet и выполнения покупок криптовалют.",
+  "description_for_model": "Plugin to retrieve Bybit Testnet portfolio balances, check profit and loss (PnL), and place buy orders via Bybit API.",
+  "auth": {
+    "type": "user_http",
+    "authorization_type": "bearer"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://0f46-195-181-164-56.ngrok-free.app/.well-known/openapi.yaml",
+    "is_user_authenticated": false
+  },
+  "logo_url": "https://0f46-195-181-164-56.ngrok-free.app/.well-known/logo.png",
+  "contact_email": "support@example.com",
+  "legal_info_url": "https://example.com/legal"
+}

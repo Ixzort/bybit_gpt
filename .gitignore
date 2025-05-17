@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+venv.d/
+ENV/
+
+# Операционные системы
+.DS_Store
+Thumbs.db
+
+# Конфигурации
+.env

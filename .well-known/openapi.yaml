@@ -1,0 +1,133 @@
+openapi: 3.1.0
+info:
+  title: Bybit Testnet Trading
+  description: API для портфеля, покупки и расчёта прибыли/убытка на Bybit Testnet.
+  version: "1.0.0"
+servers:
+  - url: https://0f46-195-181-164-56.ngrok-free.app
+    description: Public ngrok API
+paths:
+  /portfolio:
+    get:
+      summary: Получить портфель
+      operationId: getPortfolio
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortfolioResponse'
+  /buy:
+    post:
+      summary: Купить актив
+      operationId: buyOrder
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BuyRequest'
+      responses:
+        '200':
+          description: Ордер выполнен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BuyResponse'
+  /sell:
+    post:
+      summary: Продать актив
+      operationId: sellOrder
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                symbol:
+                  type: string
+                amount:
+                  type: number
+              required:
+                - symbol
+                - amount
+      responses:
+        "200":
+          description: Ордер выполнен
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /pnl:
+    get:
+      summary: Получить PnL
+      operationId: getPnL
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Прибыль/убыток
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PnLResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    PortfolioResponse:
+      type: object
+      properties:
+        portfolio:
+          type: array
+          items:
+            type: object
+            properties:
+              coin:
+                type: string
+              wallet_balance:
+                type: number
+              available_balance:
+                type: number
+    BuyRequest:
+      type: object
+      properties:
+        symbol:
+          type: string
+        amount:
+          type: number
+      required:
+        - symbol
+        - amount
+    BuyResponse:
+      type: object
+      properties:
+        order:
+          type: object
+        retCode:
+          type: integer
+        retMsg:
+          type: string
+    PnLResponse:
+      type: object
+      properties:
+        initial_portfolio_usd:
+          type: number
+        current_portfolio_usd:
+          type: number
+        pnl_usd:
+          type: number
+        pnl_percent:
+          type: number
+
