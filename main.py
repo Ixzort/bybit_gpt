@@ -95,65 +95,6 @@ def get_pnl():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка PnL: {e}")
 
-from typing import List
-
-@app.get("/low_performers", dependencies=[Depends(verify_api_key)])
-def suggest_buy_opportunities():
-    """
-    Показывает монеты, которые просели сильнее всего (что на дне).
-    """
-    try:
-        tickers = session.get_tickers(category="spot")
-        sorted_tickers = sorted(tickers["result"]["list"], key=lambda x: float(x["change24h"]))
-        return {
-            "suggested_buys": sorted_tickers[:5]  # топ 5 монет по падению
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка получения рыночных данных: {e}")
-
-@app.get("/undervalued", dependencies=[Depends(verify_api_key)])
-def get_undervalued_assets():
-    """
-    Монеты с очень маленьким балансом (<1%) в портфеле — потенциально недооценены.
-    """
-    try:
-        wallet = session.get_wallet_balance(accountType="UNIFIED")
-        coins = wallet["result"]["list"][0]["coin"]
-        total_usd = sum(float(c["usdValue"]) for c in coins if float(c["usdValue"]) > 0)
-        undervalued = []
-        for c in coins:
-            usd_value = float(c["usdValue"])
-            if total_usd > 0 and 0 < usd_value / total_usd < 0.01:
-                undervalued.append({
-                    "coin": c["coin"],
-                    "usd_value": usd_value,
-                    "percent": round((usd_value / total_usd) * 100, 2)
-                })
-        return {"undervalued_assets": undervalued}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка расчета: {e}")
-
-@app.get("/allocation", dependencies=[Depends(verify_api_key)])
-def portfolio_allocation():
-    """
-    Распределение портфеля по монетам в процентах.
-    """
-    try:
-        wallet = session.get_wallet_balance(accountType="UNIFIED")
-        coins = wallet["result"]["list"][0]["coin"]
-        total_usd = sum(float(c["usdValue"]) for c in coins if float(c["usdValue"]) > 0)
-        distribution = []
-        for c in coins:
-            usd_value = float(c["usdValue"])
-            if usd_value > 0:
-                distribution.append({
-                    "coin": c["coin"],
-                    "usd_value": usd_value,
-                    "percent": round((usd_value / total_usd) * 100, 2)
-                })
-        return {"portfolio_distribution": distribution}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка распределения: {e}")
 
 
 

@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
   title: Bybit Crypto Assistant API
-  version: 1.1.0
-  description: API для работы с портфелем, торговлей и аналитикой на Bybit Testnet
+  version: 1.0.0
+  description: API для работы с портфелем и торговлей на Bybit Testnet
 servers:
   - url: https://bybit-gpt-1.onrender.com
 components:
@@ -61,41 +61,6 @@ components:
                 type: number
               available_balance:
                 type: number
-    AllocationResponse:
-      type: object
-      properties:
-        portfolio_distribution:
-          type: array
-          items:
-            type: object
-            properties:
-              coin:
-                type: string
-              usd_value:
-                type: number
-              percent:
-                type: number
-    UndervaluedResponse:
-      type: object
-      properties:
-        undervalued_assets:
-          type: array
-          items:
-            type: object
-            properties:
-              coin:
-                type: string
-              usd_value:
-                type: number
-              percent:
-                type: number
-    SuggestionsResponse:
-      type: object
-      properties:
-        suggested_buys:
-          type: array
-          items:
-            type: object
 security:
   - bearerAuth: []
 paths:
@@ -103,6 +68,7 @@ paths:
     get:
       summary: Баланс портфеля
       operationId: getPortfolio
+      description: Получить текущие балансы портфеля через Bybit Testnet
       responses:
         '200':
           description: Балансы портфеля
@@ -112,8 +78,9 @@ paths:
                 $ref: '#/components/schemas/PortfolioResponse'
   /buy:
     post:
-      summary: Купить актив
+      summary: Купить по рынку
       operationId: buyAsset
+      description: Осуществить рыночную покупку по символу и сумме
       requestBody:
         required: true
         content:
@@ -129,8 +96,9 @@ paths:
                 $ref: '#/components/schemas/BuyResponse'
   /sell:
     post:
-      summary: Продать актив
+      summary: Продать по рынку
       operationId: sellAsset
+      description: Осуществить рыночную продажу по символу и сумме
       requestBody:
         required: true
         content:
@@ -148,6 +116,7 @@ paths:
     get:
       summary: Расчет PnL
       operationId: getPnl
+      description: Получить текущий PnL (разница между начальным и текущим балансом)
       responses:
         '200':
           description: Значение PnL
@@ -155,40 +124,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PnLResponse'
-  /allocation:
-    get:
-      summary: Распределение портфеля
-      operationId: getAllocation
-      responses:
-        '200':
-          description: Портфель в процентах
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AllocationResponse'
-  /undervalued:
-    get:
-      summary: Недооценённые активы
-      operationId: getUndervaluedAssets
-      responses:
-        '200':
-          description: Монеты с маленьким весом в портфеле
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UndervaluedResponse'
-  /low_performers:
-    get:
-      summary: Монеты на дне
-      operationId: getSuggestions
-      responses:
-        '200':
-          description: Монеты с наибольшим падением за 24ч
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuggestionsResponse'
-
 
 
 
