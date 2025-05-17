@@ -1,50 +1,35 @@
+# openapi.yaml
 openapi: 3.1.0
 info:
-  title: Bybit Testnet Trading
-  description: API для портфеля, покупки и расчёта прибыли/убытка на Bybit Testnet.
-  version: "1.0.0"
+  title: Bybit Crypto Assistant API
+  version: 1.0.0
+  description: API для работы с портфелем и торговлей на Bybit Testnet
 servers:
   - url: https://bybit-gpt-1.onrender.com
-    description: Render deployment
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
 paths:
   /portfolio:
     get:
-      summary: Получить портфель
-      operationId: getPortfolio
-      security:
-        - bearerAuth: []
+      summary: Баланс портфеля
+      description: Получить текущие балансы портфеля через Bybit Testnet
       responses:
         '200':
-          description: Успешно
+          description: Балансы портфеля
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PortfolioResponse'
+                type: object
   /buy:
     post:
-      summary: Купить актив
-      operationId: buyOrder
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/BuyRequest'
-      responses:
-        '200':
-          description: Ордер выполнен
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BuyResponse'
-  /sell:
-    post:
-      summary: Продать актив
-      operationId: sellOrder
-      security:
-        - bearerAuth: [ ]
+      summary: Купить по рынку
+      description: Осуществить рыночную покупку по заданному символу и сумме (в котируемой валюте)
       requestBody:
         required: true
         content:
@@ -60,74 +45,48 @@ paths:
                 - symbol
                 - amount
       responses:
-        "200":
-          description: Ордер выполнен
+        '200':
+          description: Результат покупки
           content:
             application/json:
               schema:
                 type: object
-
-  /pnl:
-    get:
-      summary: Получить PnL
-      operationId: getPnL
-      security:
-        - bearerAuth: []
+  /sell:
+    post:
+      summary: Продать по рынку
+      description: Осуществить рыночную продажу по заданному символу и сумме (в базовой валюте)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                symbol:
+                  type: string
+                amount:
+                  type: number
+              required:
+                - symbol
+                - amount
       responses:
         '200':
-          description: Прибыль/убыток
+          description: Результат продажи
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PnLResponse'
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-  schemas:
-    PortfolioResponse:
-      type: object
-      properties:
-        portfolio:
-          type: array
-          items:
-            type: object
-            properties:
-              coin:
-                type: string
-              wallet_balance:
-                type: number
-              available_balance:
-                type: number
-    BuyRequest:
-      type: object
-      properties:
-        symbol:
-          type: string
-        amount:
-          type: number
-      required:
-        - symbol
-        - amount
-    BuyResponse:
-      type: object
-      properties:
-        order:
-          type: object
-        retCode:
-          type: integer
-        retMsg:
-          type: string
-    PnLResponse:
-      type: object
-      properties:
-        initial_portfolio_usd:
-          type: number
-        current_portfolio_usd:
-          type: number
-        pnl_usd:
-          type: number
-        pnl_percent:
-          type: number
-
+                type: object
+  /pnl:
+    get:
+      summary: Расчет PnL
+      description: Получить текущий PnL (разница между начальным и текущим балансом)
+      responses:
+        '200':
+          description: Значение PnL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pnl:
+                    type: number
