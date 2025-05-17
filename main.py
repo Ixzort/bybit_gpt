@@ -2,160 +2,109 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from decimal import Decimal, ROUND_DOWN
-from bybit import usdt_perpetual  # Предполагаем, что используем Bybit SDK или API-клиент
-import os
+from pybit.unified_trading import HTTP as BybitHTTP
 
-app = FastAPI()
-
-# Реальные API-ключи Bybit и ключ плагина
+# ==== Конфигурация ключей ====
 BYBIT_API_KEY = "mWC5xhURKakJkC9Dri"
 BYBIT_API_SECRET = "xFlQO48iHMwzy7JHpup2WPVhQq1ksgHyYQJq"
 PLUGIN_AUTH_KEY = "ba4b7246-3660-4ab2-a5dd-715f1a4a9a5a"
 
-# Клиент Bybit (пример; важно, чтобы клиент поддерживал методы spot)
-client = usdt_perpetual.HTTP()  # или другой клиент для спота
-client.api_key = BYBIT_API_KEY
-client.api_secret = BYBIT_API_SECRET
-
-# Настраиваем Bearer-авторизацию
+# ==== Инициализация ====
+app = FastAPI(title="Bybit Crypto Assistant", version="1.1")
 security = HTTPBearer()
 
-def get_api_key(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """
-    Проверка Bearer-токена в заголовке Authorization.
-    Если токен не совпадает с PLUGIN_AUTH_KEY, возвращается ошибка 401.
-    """
-    if not credentials or credentials.scheme.lower() != "bearer":
-        raise HTTPException(status_code=403, detail="Отсутствует или неверный тип токена")
-    if credentials.credentials != PLUGIN_AUTH_KEY:
-        raise HTTPException(status_code=401, detail="Неверный токен авторизации")
-    return credentials.credentials
+session = BybitHTTP(
+    testnet=False,
+    api_key=BYBIT_API_KEY,
+    api_secret=BYBIT_API_SECRET
+)
 
+def verify_api_key(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    if token != PLUGIN_AUTH_KEY:
+        raise HTTPException(status_code=401, detail="Invalid or missing API key")
+    return True
+
+# ==== Модели ====
 class TradeRequest(BaseModel):
     symbol: str
     quantity: float
     orderType: str  # "Market" или "Limit"
-    price: float = None  # Обязательно для Limit, игнорируется для Market
+    price: float | None = None
 
 class TradeResponse(BaseModel):
-    order_id: str
+    orderId: str
     status: str
-    executed_qty: float
-    executed_price: float
+    qty: float
+    price: float | None = None
 
-@app.post("/buy", response_model=TradeResponse, summary="Купить актив")
-def buy(request: TradeRequest, token: str = Depends(get_api_key)):
-    """
-    Размещает ордер на покупку.
-    Поддерживает Market и Limit ордера.
-    Параметры price и quantity приводятся к допустимым шагам,
-    проверяются ограничения min_qty, qty_step, tick_size и min_notional:contentReference[oaicite:3]{index=3}.
-    """
-    # Получаем информацию об инструменте
-    info = client.get_instruments_info(category="spot", symbol=request.symbol)
-    if not info or 'result' not in info:
-        raise HTTPException(status_code=400, detail="Неверный символ или не удалось получить информацию об инструменте")
-    inst = info['result'][0]
-    price_filter = inst["priceFilter"]
-    lot_filter = inst["lotSizeFilter"]
-    tick_size = Decimal(price_filter["tickSize"])
-    qty_step = Decimal(lot_filter["qtyStep"])
-    min_qty = Decimal(lot_filter["minOrderQty"])
-    min_notional = Decimal(lot_filter.get("minNotionalValue", 0))
+# ==== Хелпер ====
+def round_down(value: Decimal, step: Decimal) -> Decimal:
+    return (value // step) * step
 
-    # Подготовка параметров
-    qty = Decimal(str(request.quantity))
+def get_symbol_info(symbol: str):
+    res = session.get_instruments_info(category="spot", symbol=symbol)
+    if "result" not in res or not res["result"]["list"]:
+        raise HTTPException(status_code=400, detail=f"Symbol {symbol} not found")
+    return res["result"]["list"][0]
+
+# ==== Торговля ====
+@app.post("/buy", response_model=TradeResponse, dependencies=[Depends(verify_api_key)])
+def buy(trade: TradeRequest):
+    return place_order(trade, side="Buy")
+
+@app.post("/sell", response_model=TradeResponse, dependencies=[Depends(verify_api_key)])
+def sell(trade: TradeRequest):
+    return place_order(trade, side="Sell")
+
+def place_order(trade: TradeRequest, side: str):
+    symbol = trade.symbol.upper()
+    info = get_symbol_info(symbol)
+
+    # Ограничения
+    qty_step = Decimal(info["lotSizeFilter"]["qtyStep"])
+    min_qty = Decimal(info["lotSizeFilter"]["minOrderQty"])
+    min_notional = Decimal(info["lotSizeFilter"].get("minOrderAmt", "0"))
+    tick_size = Decimal(info["priceFilter"]["tickSize"])
+
+    qty = Decimal(str(trade.quantity))
     if qty < min_qty:
-        raise HTTPException(status_code=400, detail=f"Количество меньше минимального {min_qty}")
-    # Округляем количество вниз до ближайшего шага qty_step
-    qty = (qty / qty_step).quantize(Decimal('1.'), rounding=ROUND_DOWN) * qty_step
+        raise HTTPException(status_code=400, detail=f"Минимальный объем: {min_qty}")
+    qty = round_down(qty, qty_step)
 
-    if request.orderType == "Market":
-        # Для Market-ордера цена не требуется; отправляем market buy
-        result = client.place_active_order(
-            symbol=request.symbol, side="Buy", order_type="Market", qty=str(qty), time_in_force="IOC"
-        )
-    elif request.orderType == "Limit":
-        if request.price is None:
-            raise HTTPException(status_code=400, detail="Для лимитного ордера необходимо указать цену")
-        price = Decimal(str(request.price))
-        if price < Decimal(price_filter["minPrice"]):
-            raise HTTPException(status_code=400, detail="Цена ниже минимальной")
-        # Округляем цену до tick_size
-        price = (price / tick_size).quantize(Decimal('1.'), rounding=ROUND_DOWN) * tick_size
-        # Проверяем минимальный нотионал (price * qty)
+    params = {
+        "category": "spot",
+        "symbol": symbol,
+        "side": side,
+        "orderType": trade.orderType,
+        "qty": str(qty)
+    }
+
+    if trade.orderType == "Limit":
+        if trade.price is None:
+            raise HTTPException(status_code=400, detail="Price is required for Limit orders")
+        price = Decimal(str(trade.price))
+        price = round_down(price, tick_size)
         if price * qty < min_notional:
-            raise HTTPException(status_code=400, detail=f"Стоимость ордера ниже минимального {min_notional}")
-        result = client.place_active_order(
-            symbol=request.symbol, side="Buy", order_type="Limit",
-            qty=str(qty), price=str(price), time_in_force="GTC"
-        )
+            raise HTTPException(status_code=400, detail=f"Минимальная сумма сделки: {min_notional} USDT")
+        params["price"] = str(price)
+        params["timeInForce"] = "GTC"
     else:
-        raise HTTPException(status_code=400, detail="Неверный тип ордера")
+        params["timeInForce"] = "IOC"
 
-    # Обработка ответа Bybit
-    if result.get("ret_code") != 0:
-        raise HTTPException(status_code=400, detail=result.get("ret_msg", "Ошибка от Bybit"))
-    order_id = result["result"]["order_id"]
+    try:
+        result = session.place_order(**params)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка размещения ордера: {e}")
+
+    if result["retCode"] != 0:
+        raise HTTPException(status_code=400, detail=f"Ошибка Bybit: {result['retMsg']}")
+
     return TradeResponse(
-        order_id=order_id,
-        status=result["result"]["status"],
-        executed_qty=float(qty),
-        executed_price=float(request.price or 0)
-    )
-
-@app.post("/sell", response_model=TradeResponse, summary="Продать актив")
-def sell(request: TradeRequest, token: str = Depends(get_api_key)):
-    """
-    Размещает ордер на продажу.
-    Поддерживает Market и Limit ордера.
-    Принцип работы аналогичен /buy, только side="Sell".
-    """
-    # Логика аналогична методу buy, только side="Sell"
-    info = client.get_instruments_info(category="spot", symbol=request.symbol)
-    if not info or 'result' not in info:
-        raise HTTPException(status_code=400, detail="Неверный символ или не удалось получить информацию об инструменте")
-    inst = info['result'][0]
-    price_filter = inst["priceFilter"]
-    lot_filter = inst["lotSizeFilter"]
-    tick_size = Decimal(price_filter["tickSize"])
-    qty_step = Decimal(lot_filter["qtyStep"])
-    min_qty = Decimal(lot_filter["minOrderQty"])
-    min_notional = Decimal(lot_filter.get("minNotionalValue", 0))
-
-    qty = Decimal(str(request.quantity))
-    if qty < min_qty:
-        raise HTTPException(status_code=400, detail=f"Количество меньше минимального {min_qty}")
-    qty = (qty / qty_step).quantize(Decimal('1.'), rounding=ROUND_DOWN) * qty_step
-
-    if request.orderType == "Market":
-        result = client.place_active_order(
-            symbol=request.symbol, side="Sell", order_type="Market", qty=str(qty), time_in_force="IOC"
-        )
-    elif request.orderType == "Limit":
-        if request.price is None:
-            raise HTTPException(status_code=400, detail="Для лимитного ордера необходимо указать цену")
-        price = Decimal(str(request.price))
-        if price < Decimal(price_filter["minPrice"]):
-            raise HTTPException(status_code=400, detail="Цена ниже минимальной")
-        price = (price / tick_size).quantize(Decimal('1.'), rounding=ROUND_DOWN) * tick_size
-        if price * qty < min_notional:
-            raise HTTPException(status_code=400, detail=f"Стоимость ордера ниже минимального {min_notional}")
-        result = client.place_active_order(
-            symbol=request.symbol, side="Sell", order_type="Limit",
-            qty=str(qty), price=str(price), time_in_force="GTC"
-        )
-    else:
-        raise HTTPException(status_code=400, detail="Неверный тип ордера")
-
-    if result.get("ret_code") != 0:
-        raise HTTPException(status_code=400, detail=result.get("ret_msg", "Ошибка от Bybit"))
-    order_id = result["result"]["order_id"]
-    return TradeResponse(
-        order_id=order_id,
-        status=result["result"]["status"],
-        executed_qty=float(qty),
-        executed_price=float(request.price or 0)
+        orderId=result["result"]["orderId"],
+        status=result["result"]["orderStatus"],
+        qty=float(qty),
+        price=float(price) if "price" in locals() else None
     )
 
 
