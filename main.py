@@ -34,13 +34,17 @@ class BuyRequest(BaseModel):
 @app.on_event("startup")
 def load_initial_portfolio():
     """
-    При старте приложения получаем начальный портфель (суммарный баланс)
-    для дальнейшего расчёта PnL.
+    При запуске сохраняем сумму всех активов в USD для расчёта PnL
     """
-    resp = bybit_session.get_wallet_balance(accountType="UNIFIED")
-    # resp возвращает структуру {'result': {'totalWalletBalance': "...", ...}, ...}
-    total_balance_usd = float(resp['result']['totalWalletBalance'])
-    initial_portfolio_usd['total'] = total_balance_usd
+    try:
+        resp = bybit_session.get_wallet_balance(accountType="UNIFIED")
+        coins = resp.get("result", {}).get("coin", [])
+        total_balance_usd = sum(float(c.get("usdValue", 0)) for c in coins)
+        initial_portfolio_usd["total"] = total_balance_usd
+    except Exception as e:
+        print("Ошибка при получении начального баланса:", e)
+        initial_portfolio_usd["total"] = 0.0
+
 
 def check_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
     """
