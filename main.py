@@ -39,7 +39,7 @@ def get_total_portfolio_usd() -> float:
     """
     try:
         # Получаем балансы на спотовом (spot) счету Unified Account
-        resp = client.get_wallet_balance(accountType="SPOT")
+        resp = client.get_wallet_balance(accountType="UNIFIED")
     except Exception as e:
         raise RuntimeError(f"Ошибка получения баланса: {e}")
 
@@ -91,7 +91,7 @@ async def get_portfolio():
     [ {"coin": "BTC", "free": 0.01, "locked": 0.0, "total": 0.01}, ... ]
     """
     try:
-        resp = client.get_wallet_balance(accountType="SPOT")
+        resp = client.get_wallet_balance(accountType="UNIFIED")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка API Bybit: {e}")
 
