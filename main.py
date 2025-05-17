@@ -14,8 +14,8 @@ app = FastAPI()
 # Инициализация Bybit-сессии
 session = HTTP(
     testnet=True,
-    api_key=os.getenv("BYBIT_API_KEY"),
-    api_secret=os.getenv("BYBIT_API_SECRET")
+    api_key=BYBIT_API_KEY,
+    api_secret=BYBIT_API_SECRET
 )
 
 @app.get("/portfolio")
