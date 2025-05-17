@@ -4,7 +4,7 @@ info:
   description: API для портфеля, покупки и расчёта прибыли/убытка на Bybit Testnet.
   version: "1.0.0"
 servers:
-  - url: https://bybit-gpt.onrender.com
+  - url: https://bybit-gpt-1.onrender.com
     description: Render deployment
 paths:
   /portfolio:
