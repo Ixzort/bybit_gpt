@@ -1,123 +1,46 @@
 openapi: 3.0.0
 info:
-  title: Bybit Testnet Trading API
-  version: "1.0"
-  description: API для торговли, портфеля и PnL в сети Bybit Testnet
+  title: Bybit GPT-1 API
+  version: 1.0.0
+
 servers:
   - url: https://bybit-gpt-1.onrender.com
 
 paths:
   /portfolio:
     get:
-      summary: Получить портфель
-      operationId: get_portfolio
-      description: Возвращает список монет с ненулевым балансом из аккаунта Bybit Testnet
+      summary: Получить баланс непустых монет (Bybit Testnet)
+      operationId: getPortfolio
       responses:
         '200':
-          description: Список активов
+          description: Баланс счета
           content:
             application/json:
               schema:
                 type: object
-                properties:
-                  assets:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        coin:
-                          type: string
-                        free:
-                          type: number
-                        locked:
-                          type: number
-                      required: [coin, free]
 
   /buy:
-    post:
-      summary: Купить криптовалюту
-      operationId: buy
-      description: Совершает рыночную покупку актива. Укажи либо `amount`, либо `quote`, но не оба.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                symbol:
-                  type: string
-                  example: BTCUSDT
-                amount:
-                  type: number
-                  example: 0.01
-                quote:
-                  type: number
-                  example: 100
-              required: [symbol]
+    get:
+      summary: Маркет-ордер на покупку BTC за 100 USDT
+      operationId: buyBTC
       responses:
         '200':
-          description: Результат покупки
+          description: Информация об ордере на покупку
           content:
             application/json:
               schema:
                 type: object
-                properties:
-                  result:
-                    type: object
 
   /sell:
-    post:
-      summary: Продать криптовалюту
-      operationId: sell
-      description: Совершает рыночную продажу актива. Укажи либо `amount`, либо `quote`, но не оба.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                symbol:
-                  type: string
-                  example: BTCUSDT
-                amount:
-                  type: number
-                  example: 0.01
-                quote:
-                  type: number
-                  example: 100
-              required: [symbol]
-      responses:
-        '200':
-          description: Результат продажи
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  result:
-                    type: object
-
-  /pnl:
     get:
-      summary: Получить PnL
-      operationId: get_pnl
-      description: Возвращает доходность портфеля по сравнению со стартовым значением
+      summary: Маркет-ордер на продажу 0.01 ETH
+      operationId: sellETH
       responses:
         '200':
-          description: Значения доходности
+          description: Информация об ордере на продажу
           content:
             application/json:
               schema:
                 type: object
-                properties:
-                  initial_usd:
-                    type: number
-                  current_usd:
-                    type: number
-                  pnl_usd:
-                    type: number
-                  pnl_percent:
-                    type: number
+
 
