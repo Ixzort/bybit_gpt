@@ -1,12 +1,5 @@
 from pybit.unified_trading import HTTP
 
-bybit_session = HTTP(
-    api_key=BYBIT_API_KEY,
-    api_secret=BYBIT_SECRET_KEY,
-    testnet=False  # True если используешь тестовую сеть
-)
-
-
 # main.py
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
