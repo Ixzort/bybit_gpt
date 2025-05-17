@@ -1,86 +1,17 @@
-openapi: 3.0.0
+openapi: 3.1.0
 info:
-  title: Bybit Spot Trading API
-  version: '1.1'
-  description: |
-    API для торговли спотом на Bybit. Требуется Bearer-токен для доступа.
+  title: Bybit Crypto Assistant API
+  version: 1.1.0
+  description: API для торговли любыми монетами на Bybit Spot (маркет и лимитные ордера).
 servers:
   - url: https://bybit-gpt-1.onrender.com
-
-paths:
-  /buy:
-    post:
-      summary: Купить актив
-      description: |
-        Размещает ордер на покупку (Market или Limit).
-        Требуется токен авторизации (Bearer).
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TradeRequest'
-      responses:
-        '200':
-          description: Успешный ответ
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TradeResponse'
-        '400':
-          description: Ошибка запроса (например, неверный параметр или ограничения Bybit)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Ошибка авторизации (невалидный токен)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /sell:
-    post:
-      summary: Продать актив
-      description: |
-        Размещает ордер на продажу (Market или Limit).
-        Требуется токен авторизации (Bearer).
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TradeRequest'
-      responses:
-        '200':
-          description: Успешный ответ
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TradeResponse'
-        '400':
-          description: Ошибка запроса (например, неверный параметр или ограничения Bybit)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Ошибка авторизации (невалидный токен)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
+    description: Render production server
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: Bearer
+      bearerFormat: JWT
   schemas:
     TradeRequest:
       type: object
@@ -91,51 +22,103 @@ components:
       properties:
         symbol:
           type: string
-          description: Торговая пара, например BTCUSDT
+          example: "ADAUSDT"
         quantity:
           type: number
           format: float
-          description: Количество базового актива для ордера
+          example: 100.0
         orderType:
           type: string
           enum: [Market, Limit]
-          description: Тип ордера: `Market` или `Limit`
+          example: "Market"
         price:
           type: number
           format: float
-          description: Цена за единицу (обязательно для `Limit`, игнорируется для `Market`)
+          nullable: true
+          example: 0.45
     TradeResponse:
       type: object
       properties:
-        order_id:
+        orderId:
           type: string
-          description: Идентификатор созданного ордера
         status:
           type: string
-          description: Статус ордера (например, `Created`, `Rejected` и т.д.)
-        executed_qty:
+        qty:
           type: number
           format: float
-          description: Фактически исполненное количество
-        executed_price:
+        price:
           type: number
           format: float
-          description: Цена исполнения (для рыночных ордеров фактическая цена, иначе та, что была указана)
-    BuyResponse:
-      allOf:
-        - $ref: '#/components/schemas/TradeResponse'
-      description: Ответ на запрос /buy
-    SellResponse:
-      allOf:
-        - $ref: '#/components/schemas/TradeResponse'
-      description: Ответ на запрос /sell
+          nullable: true
     ErrorResponse:
       type: object
       properties:
         detail:
           type: string
-          description: Описание ошибки
 
-security:
-  - bearerAuth: []
+paths:
+  /buy:
+    post:
+      operationId: buyAsset
+      summary: Рыночная или лимитная покупка
+      description: Размещает ордер на покупку (поддерживает Market и Limit).
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TradeRequest'
+      responses:
+        '200':
+          description: Ордер на покупку успешно размещён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradeResponse'
+        '400':
+          description: Ошибка параметров или ограничений
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Неавторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
+  /sell:
+    post:
+      operationId: sellAsset
+      summary: Рыночная или лимитная продажа
+      description: Размещает ордер на продажу (поддерживает Market и Limit).
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TradeRequest'
+      responses:
+        '200':
+          description: Ордер на продажу успешно размещён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradeResponse'
+        '400':
+          description: Ошибка параметров или ограничений
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Неавторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'

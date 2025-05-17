@@ -1,22 +1,19 @@
 {
   "schema_version": "v1",
-  "name_for_human": "Bybit Spot Trading",
-  "name_for_model": "bybit_trading",
-  "description_for_human": "Плагин для торговли спотом на бирже Bybit через API",
-  "description_for_model": "Плагин предоставляет методы /buy и /sell для торговли на спотовом рынке Bybit. Требуется Bearer-токен для авторизации.",
+  "name_for_human": "Bybit Crypto Assistant",
+  "name_for_model": "bybit_crypto_assistant",
+  "description_for_human": "Торгуй любыми монетами на Bybit Spot: покупки, продажи, лимит и маркет",
+  "description_for_model": "Позволяет торговать любыми монетами на Bybit Spot через команды покупки/продажи с учетом ограничений биржи",
   "auth": {
     "type": "user_http",
-    "authorization_type": "bearer",
-    "verification_tokens": {
-      "openai": ""
-    }
+    "authorization_type": "bearer"
   },
   "api": {
     "type": "openapi",
-    "url": "https://your-plugin-url.com/openapi.yaml",
+    "url": "https://bybit-gpt-1.onrender.com/openapi.yaml",
     "is_user_authenticated": true
   },
-  "logo_url": "https://your-plugin-url.com/logo.png",
+  "logo_url": "https://bybit-gpt-1.onrender.com/logo.png",
   "contact_email": "support@example.com",
   "legal_info_url": "https://example.com/legal"
 }
