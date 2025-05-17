@@ -4,8 +4,8 @@ from contextlib import asynccontextmanager
 import traceback
 
 # ==== Конфигурация ключей ====
-BYBIT_API_KEY = "mWC5xhURKakJkC9Dri"
-BYBIT_API_SECRET = "xFlQO48iHMwzy7JHpup2WPVhQq1ksgHyYQJq"
+BYBIT_API_KEY = "yQ6vPLh9DcWvDgbRlz"
+BYBIT_API_SECRET = "7T2mItvuA4fmvCvOzQCuQHixxllAsBikr55B "
 USE_TESTNET = True  # 👉 Измени на False, если хочешь перейти на Mainnet
 
 # ==== Инициализация клиента Bybit ====
