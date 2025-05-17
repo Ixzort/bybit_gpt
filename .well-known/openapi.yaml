@@ -4,8 +4,8 @@ info:
   description: API для портфеля, покупки и расчёта прибыли/убытка на Bybit Testnet.
   version: "1.0.0"
 servers:
-  - url: https://0f46-195-181-164-56.ngrok-free.app
-    description: Public ngrok API
+  - url: https://bybit-gpt.onrender.com
+    description: Render deployment
 paths:
   /portfolio:
     get:
