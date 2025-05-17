@@ -1,76 +1,50 @@
-import pytest
-import httpx
-import time
+from fastapi import FastAPI
+from pybit.unified_trading import HTTP as BybitHTTP
+from contextlib import asynccontextmanager
+import traceback
 
-BASE_URL = "https://bybit-gpt-1.onrender.com"
-AUTH_TOKEN = "ba4b7246-3660-4ab2-a5dd-715f1a4a9a5a"
-HEADERS = {"Authorization": f"Bearer {AUTH_TOKEN}"}
-TIMEOUT = 30
+# ==== Конфигурация ключей ====
+BYBIT_API_KEY = "mWC5xhURKakJkC9Dri"
+BYBIT_API_SECRET = "xFlQO48iHMwzy7JHpup2WPVhQq1ksgHyYQJq"
+USE_TESTNET = True  # 👉 Измени на False, если хочешь перейти на Mainnet
 
+# ==== Инициализация клиента Bybit ====
+session = BybitHTTP(
+    testnet=USE_TESTNET,
+    api_key=BYBIT_API_KEY,
+    api_secret=BYBIT_API_SECRET
+)
 
-# === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
+# ==== Диагностика подключения ====
+def test_bybit_connection():
+    print(f"🔌 Инициализация Bybit с testnet={USE_TESTNET}")
+    print("🚀 Тестирование подключения к Bybit...")
 
-def get_portfolio():
-    response = httpx.get(f"{BASE_URL}/portfolio", headers=HEADERS, timeout=TIMEOUT)
-    assert response.status_code == 200
-    return response.json()
+    account_types = ["UNIFIED", "SPOT", "CONTRACT"]
 
+    for acc_type in account_types:
+        try:
+            print(f"\n📦 Пробуем accountType = {acc_type}")
+            res = session.get_wallet_balance(accountType=acc_type)
+            balances = res.get("result", {}).get("list", [])
+            if balances:
+                print(f"✅ УСПЕШНО: Баланс получен для {acc_type}")
+                for b in balances:
+                    print(f" - {b['coin']}: {b['walletBalance']}")
+            else:
+                print(f"⚠️ Получен пустой список для {acc_type}")
+        except Exception as e:
+            print(f"❌ Ошибка при accountType = {acc_type}")
+            print(traceback.format_exc())
 
-# === ТЕСТЫ ПОКУПКИ ===
+# ==== Lifespan вместо on_event ====
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    test_bybit_connection()
+    yield
+    print("🛑 Завершение приложения")
 
-@pytest.mark.parametrize("symbol,amount", [
-    ("BTCUSDT", 0.1),
-    ("ETHUSDT", 0.1),
-    ("SOLUSDT", 1)
-])
-def test_buy(symbol, amount):
-    response = httpx.post(
-        f"{BASE_URL}/buy",
-        headers=HEADERS,
-        json={"symbol": symbol, "amount": amount},
-        timeout=TIMEOUT
-    )
-    assert response.status_code == 200, f"Failed to buy {symbol}"
-    json_data = response.json()
-    assert "order" in json_data or "message" in json_data
+# ==== FastAPI-приложение ====
+app = FastAPI(title="Bybit Diagnostic App", lifespan=lifespan)
 
-
-# === ТЕСТЫ ПРОДАЖИ ===
-
-@pytest.mark.parametrize("symbol,amount", [
-    ("BTCUSDT", 0.0001),
-    ("ETHUSDT", 0.001),
-    ("SOLUSDT", 0.01)
-])
-def test_sell(symbol, amount):
-    response = httpx.post(
-        f"{BASE_URL}/sell",
-        headers=HEADERS,
-        json={"symbol": symbol, "amount": amount},
-        timeout=TIMEOUT
-    )
-    assert response.status_code == 200, f"Failed to sell {symbol}"
-    json_data = response.json()
-    assert "order" in json_data or "message" in json_data
-
-
-# === ПРОВЕРКА ИЗМЕНЕНИЯ ПОРТФЕЛЯ ===
-
-def test_portfolio_changes_after_buy_and_sell():
-    symbol = "BTCUSDT"
-    small_amount = 5
-    small_sell = 0.0001
-
-    portfolio_before = get_portfolio()
-    time.sleep(2)
-
-    httpx.post(f"{BASE_URL}/buy", headers=HEADERS, json={"symbol": symbol, "amount": small_amount}, timeout=TIMEOUT)
-    time.sleep(5)
-
-    httpx.post(f"{BASE_URL}/sell", headers=HEADERS, json={"symbol": symbol, "amount": small_sell}, timeout=TIMEOUT)
-    time.sleep(5)
-
-    portfolio_after = get_portfolio()
-
-    assert portfolio_before != portfolio_after, "Портфель не изменился после покупки и продажи"
 

@@ -1,17 +1,22 @@
 {
   "schema_version": "v1",
   "name_for_human": "Bybit Crypto Assistant",
-  "name_for_model": "bybit_crypto_assistant",
-  "description_for_human": "Умный помощник для торговли на Bybit Testnet: портфель, покупка, продажа, PnL",
-  "description_for_model": "Умный помощник для торговли на Bybit Testnet: портфель, покупка, продажа, PnL",
+  "name_for_model": "bybitassistant",
+  "description_for_human": "Инструмент для просмотра портфеля Bybit и торговли через API.",
+  "description_for_model": "Плагин для получения портфеля, покупки криптовалюты и расчёта PnL на Bybit через заданные API-ключи.",
   "auth": {
-    "type": "bearer"
+    "type": "service_http",
+    "authorization_type": "bearer",
+    "verification_tokens": {
+      "openai": "ваш_verify_token_если_нужен"
+    }
   },
   "api": {
     "type": "openapi",
-    "url": "https://bybit-gpt-1.onrender.com/openapi.yaml"
+    "url": "https://bybit-gpt-1.onrender.com/openapi.yaml",
+    "is_user_authenticated": false
   },
-  "logo_url": "https://bybit-gpt-1.onrender.com/logo.png",
+  "logo_url": "https://bybit-gpt-1.onrender.com/onrender/logo.png",
   "contact_email": "support@example.com",
   "legal_info_url": "https://example.com/legal"
 }

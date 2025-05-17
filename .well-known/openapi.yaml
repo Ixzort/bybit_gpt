@@ -1,92 +1,39 @@
 openapi: 3.1.0
 info:
   title: Bybit Crypto Assistant API
-  version: 1.0.0
-  description: API для работы с портфелем и торговлей на Bybit Testnet
+  version: "1.0.0"
+  description: API для просмотра портфеля Bybit, покупки криптовалют и расчёта PnL.
 servers:
   - url: https://bybit-gpt-1.onrender.com
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-  schemas:
-    TradeRequest:
-      type: object
-      properties:
-        symbol:
-          type: string
-        amount:
-          type: number
-      required:
-        - symbol
-        - amount
-    BuyResponse:
-      type: object
-      properties:
-        message:
-          type: string
-        order:
-          type: object
-    SellResponse:
-      type: object
-      properties:
-        message:
-          type: string
-        order:
-          type: object
-    PnLResponse:
-      type: object
-      properties:
-        initial_portfolio_usd:
-          type: number
-        current_portfolio_usd:
-          type: number
-        pnl_usd:
-          type: number
-        pnl_percent:
-          type: number
-    PortfolioResponse:
-      type: object
-      properties:
-        portfolio:
-          type: array
-          items:
-            type: object
-            properties:
-              coin:
-                type: string
-              wallet_balance:
-                type: number
-              available_balance:
-                type: number
-security:
-  - bearerAuth: []
 paths:
   /portfolio:
     get:
-      summary: Баланс портфеля
-      operationId: getPortfolio
-      description: Получить текущие балансы портфеля через Bybit Testnet
+      summary: Текущий портфель (ненулевой баланс)
+      security:
+        - bearerAuth: []
       responses:
         '200':
-          description: Балансы портфеля
+          description: Список активов
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PortfolioResponse'
+                type: object
+                properties:
+                  portfolio:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PortfolioItem'
   /buy:
     post:
-      summary: Купить по рынку
-      operationId: buyAsset
-      description: Осуществить рыночную покупку по символу и сумме
+      summary: Купить криптовалюту по рыночной цене
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TradeRequest'
+              $ref: '#/components/schemas/BuyRequest'
       responses:
         '200':
           description: Результат покупки
@@ -94,35 +41,58 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BuyResponse'
-  /sell:
-    post:
-      summary: Продать по рынку
-      operationId: sellAsset
-      description: Осуществить рыночную продажу по символу и сумме
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TradeRequest'
-      responses:
-        '200':
-          description: Результат продажи
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SellResponse'
   /pnl:
     get:
-      summary: Расчет PnL
-      operationId: getPnl
-      description: Получить текущий PnL (разница между начальным и текущим балансом)
+      summary: PnL с учётом начального портфеля
+      security:
+        - bearerAuth: []
       responses:
         '200':
-          description: Значение PnL
+          description: Значения PnL
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PnLResponse'
-
-
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    PortfolioItem:
+      type: object
+      properties:
+        coin:
+          type: string
+        balance:
+          type: number
+        locked:
+          type: number
+        usdValue:
+          type: number
+      required: [coin, balance]
+    BuyRequest:
+      type: object
+      properties:
+        symbol:
+          type: string
+        amount:
+          type: number
+      required: [symbol, amount]
+    BuyResponse:
+      type: object
+      properties:
+        order:
+          type: object
+          description: Детали ордера (ответ Bybit)
+    PnLResponse:
+      type: object
+      properties:
+        initial_value_usd:
+          type: number
+        current_value_usd:
+          type: number
+        pnl_usd:
+          type: number
+        pnl_percent:
+          type: number
