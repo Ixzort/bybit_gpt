@@ -1,18 +1,86 @@
-openapi: 3.0.0
+openapi: 3.1.0
 info:
   title: Bybit Crypto Assistant API
-  version: 1.1.0
-  description: Торговля на Bybit Spot — лимитные и рыночные ордера
+  version: 1.0.0
+  description: API для работы с портфелем и торговлей на Bybit Testnet
 servers:
   - url: https://bybit-gpt-1.onrender.com
-
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    TradeRequest:
+      type: object
+      properties:
+        symbol:
+          type: string
+        amount:
+          type: number
+      required:
+        - symbol
+        - amount
+    BuyResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        order:
+          type: object
+    SellResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        order:
+          type: object
+    PnLResponse:
+      type: object
+      properties:
+        initial_portfolio_usd:
+          type: number
+        current_portfolio_usd:
+          type: number
+        pnl_usd:
+          type: number
+        pnl_percent:
+          type: number
+    PortfolioResponse:
+      type: object
+      properties:
+        portfolio:
+          type: array
+          items:
+            type: object
+            properties:
+              coin:
+                type: string
+              wallet_balance:
+                type: number
+              available_balance:
+                type: number
+security:
+  - bearerAuth: []
 paths:
+  /portfolio:
+    get:
+      summary: Баланс портфеля
+      operationId: getPortfolio
+      description: Получить текущие балансы портфеля через Bybit Testnet
+      responses:
+        '200':
+          description: Балансы портфеля
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortfolioResponse'
   /buy:
     post:
-      summary: Купить актив (Limit или Market)
+      summary: Купить по рынку
       operationId: buyAsset
-      security:
-        - bearerAuth: []
+      description: Осуществить рыночную покупку по символу и сумме
       requestBody:
         required: true
         content:
@@ -25,14 +93,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TradeResponse'
-
+                $ref: '#/components/schemas/BuyResponse'
   /sell:
     post:
-      summary: Продать актив (Limit или Market)
+      summary: Продать по рынку
       operationId: sellAsset
-      security:
-        - bearerAuth: []
+      description: Осуществить рыночную продажу по символу и сумме
       requestBody:
         required: true
         content:
@@ -45,37 +111,18 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TradeResponse'
-
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-
-  schemas:
-    TradeRequest:
-      type: object
-      required:
-        - symbol
-        - amount
-      properties:
-        symbol:
-          type: string
-          example: "BTCUSDT"
-        amount:
-          type: number
-          example: 0.01
-        price:
-          type: number
-          example: 30000
-
-    TradeResponse:
-      type: object
-      properties:
-        order:
-          type: object
-        message:
-          type: string
+                $ref: '#/components/schemas/SellResponse'
+  /pnl:
+    get:
+      summary: Расчет PnL
+      operationId: getPnl
+      description: Получить текущий PnL (разница между начальным и текущим балансом)
+      responses:
+        '200':
+          description: Значение PnL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PnLResponse'
 
 
