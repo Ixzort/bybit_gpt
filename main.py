@@ -21,7 +21,8 @@ class OrderRequest(BaseModel):
 # Функция для расчёта общей стоимости портфеля в USD
 def get_total_usd_value():
     total = 0.0
-    balances = session.get_wallet_balance(accountType="SPOT")
+    balances = session.get_wallet_balance(accountType="UNIFIED")
+
     for asset in balances['result']['list']:
         coin = asset['coin']
         free = float(asset.get('free', 0) or 0)
@@ -45,7 +46,7 @@ async def get_portfolio():
     """
     GET /portfolio — возвращает все монеты с ненулевым балансом (Spot Unified Account).
     """
-    resp = session.get_wallet_balance(accountType="SPOT")
+    resp = session.get_wallet_balance(accountType="UNIFIED")
     result = []
     for asset in resp['result']['list']:
         coin = asset['coin']
