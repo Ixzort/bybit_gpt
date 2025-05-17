@@ -1,41 +1,43 @@
-openapi: 3.1.0
+openapi: 3.0.0
 info:
-  title: Bybit Unified API
+  title: Bybit Testnet Trading API
   version: "1.0"
-  description: API для торговли, просмотра баланса и расчета PnL на Bybit через Unified Account.
+  description: API для торговли, портфеля и PnL в сети Bybit Testnet
 servers:
   - url: https://bybit-gpt-1.onrender.com
+
 paths:
   /portfolio:
     get:
-      summary: Получить баланс активов
+      summary: Получить портфель
       operationId: get_portfolio
-      description: Возвращает список монет с ненулевым балансом на спотовом счёте.
+      description: Возвращает список монет с ненулевым балансом из аккаунта Bybit Testnet
       responses:
         '200':
           description: Список активов
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    coin:
-                      type: string
-                    free:
-                      type: number
-                    locked:
-                      type: number
-                    total:
-                      type: number
-                  required: [coin, free, locked, total]
+                type: object
+                properties:
+                  assets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        coin:
+                          type: string
+                        free:
+                          type: number
+                        locked:
+                          type: number
+                      required: [coin, free]
 
   /buy:
     post:
-      summary: Рыночная покупка монеты
-      operationId: buy_coin
-      description: Совершает рыночную покупку актива по заданному символу и количеству.
+      summary: Купить криптовалюту
+      operationId: buy
+      description: Совершает рыночную покупку актива. Укажи либо `amount`, либо `quote`, но не оба.
       requestBody:
         required: true
         content:
@@ -49,30 +51,26 @@ paths:
                 amount:
                   type: number
                   example: 0.01
-              required: [symbol, amount]
+                quote:
+                  type: number
+                  example: 100
+              required: [symbol]
       responses:
         '200':
-          description: Ответ от Bybit API
+          description: Результат покупки
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  retCode:
-                    type: integer
-                  retMsg:
-                    type: string
                   result:
                     type: object
-                  time:
-                    type: integer
-                required: [retCode, retMsg, result, time]
 
   /sell:
     post:
-      summary: Рыночная продажа монеты
-      operationId: sell_coin
-      description: Совершает рыночную продажу актива по заданному символу и количеству.
+      summary: Продать криптовалюту
+      operationId: sell
+      description: Совершает рыночную продажу актива. Укажи либо `amount`, либо `quote`, но не оба.
       requestBody:
         required: true
         content:
@@ -86,44 +84,40 @@ paths:
                 amount:
                   type: number
                   example: 0.01
-              required: [symbol, amount]
+                quote:
+                  type: number
+                  example: 100
+              required: [symbol]
       responses:
         '200':
-          description: Ответ от Bybit API
+          description: Результат продажи
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  retCode:
-                    type: integer
-                  retMsg:
-                    type: string
                   result:
                     type: object
-                  time:
-                    type: integer
-                required: [retCode, retMsg, result, time]
-
 
   /pnl:
     get:
-      summary: Расчёт PnL
+      summary: Получить PnL
       operationId: get_pnl
-      description: Возвращает прибыль/убыток по сравнению с начальными значениями портфеля.
+      description: Возвращает доходность портфеля по сравнению со стартовым значением
       responses:
         '200':
-          description: Значения PnL
+          description: Значения доходности
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  initial_balance:
+                  initial_usd:
                     type: number
-                  current_balance:
+                  current_usd:
                     type: number
-                  pnl:
+                  pnl_usd:
                     type: number
-                required: [initial_balance, current_balance, pnl]
+                  pnl_percent:
+                    type: number
 
