@@ -85,7 +85,8 @@ def buy_asset(symbol: str, amount: float):
             symbol=symbol,
             side="Buy",
             orderType="Market",
-            quoteQty=str(amount),
+            qty=str(amount),
+            marketUnit="quoteCoin",
             timeInForce="IOC"
         )
         if order["retCode"] != 0:
@@ -94,11 +95,10 @@ def buy_asset(symbol: str, amount: float):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка при покупке: {e}")
 
-
 @app.post("/sell", dependencies=[Depends(verify_api_key)])
 def sell_asset(symbol: str, amount: float):
     """
-    Продать актив по рынку: symbol (например BTCUSDT), amount — сумма в валюте котировки (например, на 10 USDT).
+    Продать актив по рынку: symbol (например BTCUSDT), amount — количество базовой валюты (например, 0.001 BTC).
     """
     try:
         order = session.place_order(
@@ -106,7 +106,8 @@ def sell_asset(symbol: str, amount: float):
             symbol=symbol,
             side="Sell",
             orderType="Market",
-            quoteQty=str(amount),
+            qty=str(amount),
+            marketUnit="baseCoin",
             timeInForce="IOC"
         )
         if order["retCode"] != 0:
