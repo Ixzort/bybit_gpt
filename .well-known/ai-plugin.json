@@ -1,20 +1,19 @@
 {
   "schema_version": "v1",
-  "name_for_human": "Торговля Bybit Spot",
-  "name_for_model": "bybit_spot_trader",
-  "description_for_human": "API для торговли на бирже Bybit (Spot): покупка и продажа криптовалют.",
-  "description_for_model": "Позволяет совершать рыночные и лимитные ордера на торговой платформе Bybit Spot.",
+  "name_for_human": "Bybit Crypto Assistant",
+  "name_for_model": "bybit_crypto_assistant",
+  "description_for_human": "Торговля на Bybit Spot: покупка, продажа (лимит/маркет)",
+  "description_for_model": "Позволяет покупать и продавать криптовалюту на Bybit Spot через API",
   "auth": {
     "type": "user_http",
-    "authorization_type": "bearer",
-    "verification_tokens": {}
+    "authorization_type": "bearer"
   },
   "api": {
     "type": "openapi",
     "url": "https://bybit-gpt-1.onrender.com/openapi.yaml",
     "is_user_authenticated": true
   },
-  "logo_url": "https://example.com/logo.png",
+  "logo_url": "https://bybit-gpt-1.onrender.com/logo.png",
   "contact_email": "support@example.com",
-  "legal_info_url": "http://example.com/legal"
+  "legal_info_url": "https://example.com/legal"
 }

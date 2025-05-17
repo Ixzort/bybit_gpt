@@ -1,13 +1,16 @@
 openapi: 3.0.0
 info:
-  title: "API торговли на Bybit Spot"
-  version: "1.0.0"
-  servers:
-    - url: https://bybit-gpt-1.onrender.com
+  title: Bybit Crypto Assistant API
+  version: 1.1.0
+  description: Торговля на Bybit Spot — лимитные и рыночные ордера
+servers:
+  - url: https://bybit-gpt-1.onrender.com
+
 paths:
   /buy:
     post:
-      summary: "Купить (Buy) выбранный символ"
+      summary: Купить актив (Limit или Market)
+      operationId: buyAsset
       security:
         - bearerAuth: []
       requestBody:
@@ -15,37 +18,19 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                symbol:
-                  type: string
-                  description: "Тикер валютной пары (например, BTCUSDT)"
-                amount:
-                  type: number
-                  description: "Количество монет для покупки/продажи"
-                price:
-                  type: number
-                  description: "Цена для лимитного ордера (если указана, ордер будет Limit)."
-              required:
-                - symbol
-                - amount
+              $ref: '#/components/schemas/TradeRequest'
       responses:
         '200':
-          description: "Информация о размещенном ордере"
+          description: Результат покупки
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  order:
-                    type: object
-                    description: "Полный ответ от Bybit с информацией о ордере"
-                  message:
-                    type: string
-                    description: "Сообщение о статусе операции"
+                $ref: '#/components/schemas/TradeResponse'
+
   /sell:
     post:
-      summary: "Продать (Sell) выбранный символ"
+      summary: Продать актив (Limit или Market)
+      operationId: sellAsset
       security:
         - bearerAuth: []
       requestBody:
@@ -53,37 +38,44 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                symbol:
-                  type: string
-                  description: "Тикер валютной пары (например, BTCUSDT)"
-                amount:
-                  type: number
-                  description: "Количество монет для покупки/продажи"
-                price:
-                  type: number
-                  description: "Цена для лимитного ордера (если указана, ордер будет Limit)."
-              required:
-                - symbol
-                - amount
+              $ref: '#/components/schemas/TradeRequest'
       responses:
         '200':
-          description: "Информация о размещенном ордере"
+          description: Результат продажи
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  order:
-                    type: object
-                    description: "Полный ответ от Bybit с информацией о ордере"
-                  message:
-                    type: string
-                    description: "Сообщение о статусе операции"
+                $ref: '#/components/schemas/TradeResponse'
+
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
+
+  schemas:
+    TradeRequest:
+      type: object
+      required:
+        - symbol
+        - amount
+      properties:
+        symbol:
+          type: string
+          example: "BTCUSDT"
+        amount:
+          type: number
+          example: 0.01
+        price:
+          type: number
+          example: 30000
+
+    TradeResponse:
+      type: object
+      properties:
+        order:
+          type: object
+        message:
+          type: string
+
 
