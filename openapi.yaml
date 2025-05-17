@@ -29,9 +29,23 @@ paths:
                 required: [retCode, result]
 
   /buy:
-    get:
-      summary: Купить BTC на 100 USDT
-      operationId: buyBTC
+    post:
+      summary: Купить монету
+      operationId: buyAsset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                symbol:
+                  type: string
+                amount:
+                  type: number
+                quote:
+                  type: number
+              required: [symbol]
       responses:
         '200':
           description: Результат покупки
@@ -49,9 +63,23 @@ paths:
                 required: [retCode, result]
 
   /sell:
-    get:
-      summary: Продать 0.01 ETH
-      operationId: sellETH
+    post:
+      summary: Продать монету
+      operationId: sellAsset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                symbol:
+                  type: string
+                amount:
+                  type: number
+                quote:
+                  type: number
+              required: [symbol]
       responses:
         '200':
           description: Результат продажи
@@ -67,5 +95,6 @@ paths:
                   retMsg:
                     type: string
                 required: [retCode, result]
+
 
 
