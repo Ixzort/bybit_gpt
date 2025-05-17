@@ -1,6 +1,11 @@
-BYBIT_API_KEY = "mWC5xhURKakJkC9Dri"
-BYBIT_API_SECRET = "xFlQO48iHMwzy7JHpup2WPVhQq1ksgHyYQJq"
-PLUGIN_AUTH_KEY = "ba4b7246-3660-4ab2-a5dd-715f1a4a9a5a"
+from pybit.unified_trading import HTTP
+
+bybit_session = HTTP(
+    api_key=BYBIT_API_KEY,
+    api_secret=BYBIT_SECRET_KEY,
+    testnet=False  # True если используешь тестовую сеть
+)
+
 
 # main.py
 from fastapi import FastAPI, Depends, HTTPException
@@ -17,12 +22,13 @@ BYBIT_API_SECRET = "xFlQO48iHMwzy7JHpup2WPVhQq1ksgHyYQJq"
 PLUGIN_AUTH_KEY = "ba4b7246-3660-4ab2-a5dd-715f1a4a9a5a"
 
 
-# Инициализируем сессию Bybit Unified Account
-bybit_session = BybitSession(
+bybit_session = HTTP(
     api_key=BYBIT_API_KEY,
     api_secret=BYBIT_API_SECRET,
-    endpoint="https://api.bybit.com"  # или тестовый https://api-testnet.bybit.com
+    testnet=True  # True если используешь тестовую сеть
 )
+
+
 
 # Словарь для хранения начального портфеля в USD
 initial_portfolio_usd = {"total": 0.0}
