@@ -1,6 +1,6 @@
-# main.py
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from pydantic import BaseModel
 from pybit.unified_trading import HTTP as BybitHTTP
 
 # ==== Конфигурация ключей ====
@@ -10,8 +10,6 @@ PLUGIN_AUTH_KEY = "ba4b7246-3660-4ab2-a5dd-715f1a4a9a5a"
 
 # ==== Инициализация ====
 app = FastAPI(title="Bybit Crypto Assistant", version="1.0")
-
-# Аутентификация: Bearer token
 security = HTTPBearer()
 
 def verify_api_key(credentials: HTTPAuthorizationCredentials = Depends(security)):
@@ -20,14 +18,12 @@ def verify_api_key(credentials: HTTPAuthorizationCredentials = Depends(security)
         raise HTTPException(status_code=401, detail="Invalid or missing API key")
     return True
 
-# Подключение к Bybit Testnet
 session = BybitHTTP(
     testnet=True,
     api_key=BYBIT_API_KEY,
     api_secret=BYBIT_API_SECRET
 )
 
-# Сохраняем начальный баланс для расчета PnL
 initial_balance = 0.0
 
 @app.on_event("startup")
@@ -41,22 +37,24 @@ def startup_event():
 
 @app.get("/portfolio", dependencies=[Depends(verify_api_key)])
 def get_portfolio():
-    """Получить текущие балансы портфеля."""
     try:
         return session.get_wallet_balance(accountType="UNIFIED")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка запроса: {e}")
 
+class TradeRequest(BaseModel):
+    symbol: str
+    amount: float
+
 @app.post("/buy", dependencies=[Depends(verify_api_key)])
-def buy(symbol: str, amount: float):
-    """Купить по рынку: сумма в валюте котировки."""
+def buy(trade: TradeRequest):
     try:
         order = session.place_order(
             category="spot",
-            symbol=symbol,
+            symbol=trade.symbol,
             side="Buy",
             orderType="Market",
-            qty=str(amount),
+            qty=str(trade.amount),
             timeInForce="IOC",
             orderFilter="Order",
             isLeverage=0
@@ -66,15 +64,14 @@ def buy(symbol: str, amount: float):
         raise HTTPException(status_code=500, detail=f"Ошибка покупки: {e}")
 
 @app.post("/sell", dependencies=[Depends(verify_api_key)])
-def sell(symbol: str, amount: float):
-    """Продать по рынку: сумма в базовой валюте."""
+def sell(trade: TradeRequest):
     try:
         order = session.place_order(
             category="spot",
-            symbol=symbol,
+            symbol=trade.symbol,
             side="Sell",
             orderType="Market",
-            qty=str(amount),
+            qty=str(trade.amount),
             timeInForce="IOC",
             orderFilter="Order",
             isLeverage=0
@@ -85,7 +82,6 @@ def sell(symbol: str, amount: float):
 
 @app.get("/pnl", dependencies=[Depends(verify_api_key)])
 def get_pnl():
-    """Вычислить текущий PnL по сравнению с изначальным балансом."""
     try:
         wallet = session.get_wallet_balance(accountType="UNIFIED")
         current_total = float(wallet["result"]["list"][0]["totalWalletBalance"])
@@ -98,6 +94,7 @@ def get_pnl():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка PnL: {e}")
+
 
 
 

@@ -1,4 +1,3 @@
-# openapi.yaml
 openapi: 3.1.0
 info:
   title: Bybit Crypto Assistant API
@@ -12,6 +11,28 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  schemas:
+    TradeRequest:
+      type: object
+      properties:
+        symbol:
+          type: string
+        amount:
+          type: number
+      required:
+        - symbol
+        - amount
+    PnLResponse:
+      type: object
+      properties:
+        initial_portfolio_usd:
+          type: number
+        current_portfolio_usd:
+          type: number
+        pnl_usd:
+          type: number
+        pnl_percent:
+          type: number
 security:
   - bearerAuth: []
 paths:
@@ -35,15 +56,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                symbol:
-                  type: string
-                amount:
-                  type: number
-              required:
-                - symbol
-                - amount
+              $ref: '#/components/schemas/TradeRequest'
       responses:
         '200':
           description: Результат покупки
@@ -60,15 +73,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                symbol:
-                  type: string
-                amount:
-                  type: number
-              required:
-                - symbol
-                - amount
+              $ref: '#/components/schemas/TradeRequest'
       responses:
         '200':
           description: Результат продажи
@@ -86,7 +91,5 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  pnl:
-                    type: number
+                $ref: '#/components/schemas/PnLResponse'
+
