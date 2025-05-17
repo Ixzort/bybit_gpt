@@ -1,129 +1,141 @@
-openapi: 3.1.0
+openapi: 3.0.0
 info:
-  title: Bybit Crypto Assistant API
-  version: 1.0.0
-  description: API для работы с портфелем и торговлей на Bybit Testnet
+  title: Bybit Spot Trading API
+  version: '1.1'
+  description: |
+    API для торговли спотом на Bybit. Требуется Bearer-токен для доступа.
 servers:
   - url: https://bybit-gpt-1.onrender.com
+
+paths:
+  /buy:
+    post:
+      summary: Купить актив
+      description: |
+        Размещает ордер на покупку (Market или Limit).
+        Требуется токен авторизации (Bearer).
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TradeRequest'
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradeResponse'
+        '400':
+          description: Ошибка запроса (например, неверный параметр или ограничения Bybit)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Ошибка авторизации (невалидный токен)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /sell:
+    post:
+      summary: Продать актив
+      description: |
+        Размещает ордер на продажу (Market или Limit).
+        Требуется токен авторизации (Bearer).
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TradeRequest'
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradeResponse'
+        '400':
+          description: Ошибка запроса (например, неверный параметр или ограничения Bybit)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Ошибка авторизации (невалидный токен)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: JWT
+      bearerFormat: Bearer
   schemas:
     TradeRequest:
       type: object
+      required:
+        - symbol
+        - quantity
+        - orderType
       properties:
         symbol:
           type: string
-        amount:
+          description: Торговая пара, например BTCUSDT
+        quantity:
           type: number
-      required:
-        - symbol
-        - amount
+          format: float
+          description: Количество базового актива для ордера
+        orderType:
+          type: string
+          enum: [Market, Limit]
+          description: Тип ордера: `Market` или `Limit`
+        price:
+          type: number
+          format: float
+          description: Цена за единицу (обязательно для `Limit`, игнорируется для `Market`)
+    TradeResponse:
+      type: object
+      properties:
+        order_id:
+          type: string
+          description: Идентификатор созданного ордера
+        status:
+          type: string
+          description: Статус ордера (например, `Created`, `Rejected` и т.д.)
+        executed_qty:
+          type: number
+          format: float
+          description: Фактически исполненное количество
+        executed_price:
+          type: number
+          format: float
+          description: Цена исполнения (для рыночных ордеров фактическая цена, иначе та, что была указана)
     BuyResponse:
-      type: object
-      properties:
-        message:
-          type: string
-        order:
-          type: object
+      allOf:
+        - $ref: '#/components/schemas/TradeResponse'
+      description: Ответ на запрос /buy
     SellResponse:
+      allOf:
+        - $ref: '#/components/schemas/TradeResponse'
+      description: Ответ на запрос /sell
+    ErrorResponse:
       type: object
       properties:
-        message:
+        detail:
           type: string
-        order:
-          type: object
-    PnLResponse:
-      type: object
-      properties:
-        initial_portfolio_usd:
-          type: number
-        current_portfolio_usd:
-          type: number
-        pnl_usd:
-          type: number
-        pnl_percent:
-          type: number
-    PortfolioResponse:
-      type: object
-      properties:
-        portfolio:
-          type: array
-          items:
-            type: object
-            properties:
-              coin:
-                type: string
-              wallet_balance:
-                type: number
-              available_balance:
-                type: number
+          description: Описание ошибки
+
 security:
   - bearerAuth: []
-paths:
-  /portfolio:
-    get:
-      summary: Баланс портфеля
-      operationId: getPortfolio
-      description: Получить текущие балансы портфеля через Bybit Testnet
-      responses:
-        '200':
-          description: Балансы портфеля
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PortfolioResponse'
-  /buy:
-    post:
-      summary: Купить по рынку
-      operationId: buyAsset
-      description: Осуществить рыночную покупку по символу и сумме
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TradeRequest'
-      responses:
-        '200':
-          description: Результат покупки
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BuyResponse'
-  /sell:
-    post:
-      summary: Продать по рынку
-      operationId: sellAsset
-      description: Осуществить рыночную продажу по символу и сумме
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TradeRequest'
-      responses:
-        '200':
-          description: Результат продажи
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SellResponse'
-  /pnl:
-    get:
-      summary: Расчет PnL
-      operationId: getPnl
-      description: Получить текущий PnL (разница между начальным и текущим балансом)
-      responses:
-        '200':
-          description: Значение PnL
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PnLResponse'
-
-
 
