@@ -22,7 +22,7 @@ app = FastAPI(
 
 # Получаем ключи API из окружения
 API_KEY = "yQ6vPLh9DcWvDgbRlz"
-API_SECRET = "7T2mItvuA4fmvCvOzQCuQHixxllAsBikr55B "
+API_SECRET = "7T2mItvuA4fmvCvOzQCuQHixxllAsBikr55B"
 if not API_KEY or not API_SECRET:
     raise RuntimeError("Не заданы BYBIT_API_KEY и BYBIT_API_SECRET в окружении")
 
