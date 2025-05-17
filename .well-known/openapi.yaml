@@ -1,124 +1,89 @@
-openapi: 3.1.0
+openapi: 3.0.0
 info:
-  title: Bybit Crypto Assistant API
-  version: 1.1.0
-  description: API для торговли любыми монетами на Bybit Spot (маркет и лимитные ордера).
-servers:
-  - url: https://bybit-gpt-1.onrender.com
-    description: Render production server
+  title: "API торговли на Bybit Spot"
+  version: "1.0.0"
+  servers:
+    - url: https://bybit-gpt-1.onrender.com
+paths:
+  /buy:
+    post:
+      summary: "Купить (Buy) выбранный символ"
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                symbol:
+                  type: string
+                  description: "Тикер валютной пары (например, BTCUSDT)"
+                amount:
+                  type: number
+                  description: "Количество монет для покупки/продажи"
+                price:
+                  type: number
+                  description: "Цена для лимитного ордера (если указана, ордер будет Limit)."
+              required:
+                - symbol
+                - amount
+      responses:
+        '200':
+          description: "Информация о размещенном ордере"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  order:
+                    type: object
+                    description: "Полный ответ от Bybit с информацией о ордере"
+                  message:
+                    type: string
+                    description: "Сообщение о статусе операции"
+  /sell:
+    post:
+      summary: "Продать (Sell) выбранный символ"
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                symbol:
+                  type: string
+                  description: "Тикер валютной пары (например, BTCUSDT)"
+                amount:
+                  type: number
+                  description: "Количество монет для покупки/продажи"
+                price:
+                  type: number
+                  description: "Цена для лимитного ордера (если указана, ордер будет Limit)."
+              required:
+                - symbol
+                - amount
+      responses:
+        '200':
+          description: "Информация о размещенном ордере"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  order:
+                    type: object
+                    description: "Полный ответ от Bybit с информацией о ордере"
+                  message:
+                    type: string
+                    description: "Сообщение о статусе операции"
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: JWT
-  schemas:
-    TradeRequest:
-      type: object
-      required:
-        - symbol
-        - quantity
-        - orderType
-      properties:
-        symbol:
-          type: string
-          example: "ADAUSDT"
-        quantity:
-          type: number
-          format: float
-          example: 100.0
-        orderType:
-          type: string
-          enum: [Market, Limit]
-          example: "Market"
-        price:
-          type: number
-          format: float
-          nullable: true
-          example: 0.45
-    TradeResponse:
-      type: object
-      properties:
-        orderId:
-          type: string
-        status:
-          type: string
-        qty:
-          type: number
-          format: float
-        price:
-          type: number
-          format: float
-          nullable: true
-    ErrorResponse:
-      type: object
-      properties:
-        detail:
-          type: string
 
-paths:
-  /buy:
-    post:
-      operationId: buyAsset
-      summary: Рыночная или лимитная покупка
-      description: Размещает ордер на покупку (поддерживает Market и Limit).
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TradeRequest'
-      responses:
-        '200':
-          description: Ордер на покупку успешно размещён
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TradeResponse'
-        '400':
-          description: Ошибка параметров или ограничений
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Неавторизован
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /sell:
-    post:
-      operationId: sellAsset
-      summary: Рыночная или лимитная продажа
-      description: Размещает ордер на продажу (поддерживает Market и Limit).
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TradeRequest'
-      responses:
-        '200':
-          description: Ордер на продажу успешно размещён
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TradeResponse'
-        '400':
-          description: Ошибка параметров или ограничений
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Неавторизован
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
