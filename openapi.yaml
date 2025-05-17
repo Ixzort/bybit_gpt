@@ -1,7 +1,8 @@
-openapi: 3.0.0
+openapi: 3.1.0
 info:
-  title: Bybit GPT-1 API
+  title: Bybit GPT Testnet API
   version: 1.0.0
+  description: Минималистичный API для покупки, продажи и получения баланса через Bybit Testnet
 
 servers:
   - url: https://bybit-gpt-1.onrender.com
@@ -9,38 +10,62 @@ servers:
 paths:
   /portfolio:
     get:
-      summary: Получить баланс непустых монет (Bybit Testnet)
+      summary: Получить баланс
       operationId: getPortfolio
       responses:
         '200':
-          description: Баланс счета
+          description: Баланс аккаунта
           content:
             application/json:
               schema:
                 type: object
+                properties:
+                  result:
+                    type: object
+                  retCode:
+                    type: integer
+                  retMsg:
+                    type: string
+                required: [retCode, result]
 
   /buy:
     get:
-      summary: Маркет-ордер на покупку BTC за 100 USDT
+      summary: Купить BTC на 100 USDT
       operationId: buyBTC
       responses:
         '200':
-          description: Информация об ордере на покупку
+          description: Результат покупки
           content:
             application/json:
               schema:
                 type: object
+                properties:
+                  result:
+                    type: object
+                  retCode:
+                    type: integer
+                  retMsg:
+                    type: string
+                required: [retCode, result]
 
   /sell:
     get:
-      summary: Маркет-ордер на продажу 0.01 ETH
+      summary: Продать 0.01 ETH
       operationId: sellETH
       responses:
         '200':
-          description: Информация об ордере на продажу
+          description: Результат продажи
           content:
             application/json:
               schema:
                 type: object
+                properties:
+                  result:
+                    type: object
+                  retCode:
+                    type: integer
+                  retMsg:
+                    type: string
+                required: [retCode, result]
 
 
