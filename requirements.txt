@@ -1,3 +1,4 @@
 fastapi
-uvicorn[standard]
-pybit==5.3.0
+uvicorn
+pybit
+python-dotenv

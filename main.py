@@ -50,6 +50,12 @@ async def sell_eth():
     )
     return order
 
+from fastapi.responses import FileResponse
+
+@app.get("/openapi.yaml")
+def get_openapi_yaml():
+    return FileResponse("openapi.yaml", media_type="text/yaml")
+
 
 
 
