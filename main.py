@@ -8,31 +8,9 @@ from pybit.unified_trading import HTTP
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
-app = FastAPI()
 
-@app.get("/privacy", response_class=HTMLResponse)
-async def privacy_policy():
-    return """
-    <!DOCTYPE html>
-    <html lang="ru">
-    <head>
-        <meta charset="UTF-8">
-        <title>Политика конфиденциальности</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-            body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; }
-            h1 { color: #333; }
-        </style>
-    </head>
-    <body>
-        <h1>Политика конфиденциальности</h1>
-        <p>Последнее обновление: 18 мая 2025</p>
-        <p>Мы уважаем вашу конфиденциальность. Это приложение не собирает, не хранит и не передаёт персональные данные пользователей. 
-        Все запросы обрабатываются локально и через официальное API Bybit без стороннего хранения данных.</p>
-        <p>Если у вас есть вопросы, свяжитесь с нами по адресу электронной почты: <a href="mailto:example@email.com">example@email.com</a>.</p>
-    </body>
-    </html>
-    """
+
+
 
 
 
@@ -163,3 +141,27 @@ def sell(req: OrderRequest):
 def get_openapi_yaml():
     return FileResponse("openapi.yaml", media_type="text/yaml")
 
+
+@app.get("/privacy", response_class=HTMLResponse)
+async def privacy_policy():
+    return """
+    <!DOCTYPE html>
+    <html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <title>Политика конфиденциальности</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; }
+            h1 { color: #333; }
+        </style>
+    </head>
+    <body>
+        <h1>Политика конфиденциальности</h1>
+        <p>Последнее обновление: 18 мая 2025</p>
+        <p>Мы уважаем вашу конфиденциальность. Это приложение не собирает, не хранит и не передаёт персональные данные пользователей. 
+        Все запросы обрабатываются локально и через официальное API Bybit без стороннего хранения данных.</p>
+        <p>Если у вас есть вопросы, свяжитесь с нами по адресу электронной почты: <a href="mailto:example@email.com">example@email.com</a>.</p>
+    </body>
+    </html>
+    """
