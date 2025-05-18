@@ -13,10 +13,10 @@
   },
   "api": {
     "type": "openapi",
-    "url": "https://bybit-gpt-1.onrender.com/openapi.yaml",
+    "url": "https://bybit-gpt-test.onrender.com/openapi.yaml",
     "is_user_authenticated": false
   },
-  "logo_url": "https://bybit-gpt-1.onrender.com/onrender/logo.png",
+  "logo_url": "https://bybit-gpt-test.onrender.com/onrender/logo.png",
   "contact_email": "support@example.com",
   "legal_info_url": "https://example.com/legal"
 }

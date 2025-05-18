@@ -5,7 +5,7 @@ info:
   description: Минималистичный API для покупки, продажи и получения баланса через Bybit Testnet
 
 servers:
-  - url: https://bybit-gpt-1.onrender.com
+  - url: https://bybit-gpt-test.onrender.com
 
 paths:
   /portfolio:
