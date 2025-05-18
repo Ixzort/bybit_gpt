@@ -4,6 +4,37 @@ from pydantic import BaseModel
 from typing import Optional
 from pybit.unified_trading import HTTP
 
+
+from fastapi.responses import HTMLResponse
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/privacy", response_class=HTMLResponse)
+async def privacy_policy():
+    return """
+    <!DOCTYPE html>
+    <html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <title>Политика конфиденциальности</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; }
+            h1 { color: #333; }
+        </style>
+    </head>
+    <body>
+        <h1>Политика конфиденциальности</h1>
+        <p>Последнее обновление: 18 мая 2025</p>
+        <p>Мы уважаем вашу конфиденциальность. Это приложение не собирает, не хранит и не передаёт персональные данные пользователей. 
+        Все запросы обрабатываются локально и через официальное API Bybit без стороннего хранения данных.</p>
+        <p>Если у вас есть вопросы, вы можете связаться с разработчиком по адресу электронной почты: <a href="mailto:example@email.com">example@email.com</a>.</p>
+    </body>
+    </html>
+    """
+
+
 # 🔐 Bybit API Testnet ключи
 BYBIT_API_KEY = "mWC5xhURKakJkC9Dri"
 BYBIT_API_SECRET = "xFlQO48iHMwzy7JHpup2WPVhQq1ksgHyYQJq"
