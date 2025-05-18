@@ -97,4 +97,38 @@ paths:
                 required: [retCode, result]
 
 
+  /pnl:
+    get:
+      summary: Доходность портфеля
+      operationId: getPnL
+      responses:
+        '200':
+          description: PnL аккаунта
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  initial_usd:
+                    type: number
+                  current_usd:
+                    type: number
+                  pnl_usd:
+                    type: number
+                  pnl_percent:
+                    type: number
+                required: [initial_usd, current_usd, pnl_usd, pnl_percent]
+
+
+
+
+
+
+
+
+
+
+
+
+
 
