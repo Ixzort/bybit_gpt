@@ -116,25 +116,31 @@ def place_order(side: str, req: OrderRequest):
         try:
             coin = normalize_symbol(req.symbol).upper()
             balance = session.get_wallet_balance(accountType="UNIFIED")
-            coin_list = balance["result"]["list"][0]["coin"]
 
-            match = next((c for c in coin_list if c["coin"].upper() == coin), None)
-            available = safe_float(match["availableToWithdraw"]) if match else 0.0
+            coins = balance.get("result", {}).get("list", [])[0].get("coin", [])
+            found = [c for c in coins if c.get("coin", "").upper() == coin]
 
-            print(f"🔍 DEBUG: ищем {coin}, найдено: {available}")
+            if not found:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Монета {coin} не найдена в списке баланса"
+                )
+
+            available_raw = found[0].get("availableToWithdraw", "0")
+            available = safe_float(available_raw)
+
+            print(f"✅ Доступно {coin}: {available} для продажи")
 
             if available < req.amount:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Недостаточно {coin} на счету (доступно: {available})"
+                    detail=f"Недостаточно {coin} на счету для продажи {req.amount} монет (доступно: {available})"
                 )
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Ошибка при проверке баланса: {e}")
-
-    try:
-        return session.place_order(**params)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка отправки ордера: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Ошибка при проверке баланса: {str(e)}"
+            )
 
 
 @app.post("/buy")
