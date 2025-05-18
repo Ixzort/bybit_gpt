@@ -54,6 +54,13 @@ def safe_float(val):
     except (ValueError, TypeError):
         return 0.0
 
+def normalize_symbol(symbol: str) -> str:
+    suffixes = ["USDT", "USDC", "BTC", "ETH"]
+    for s in suffixes:
+        if symbol.endswith(s):
+            return symbol[:-len(s)]
+    return symbol
+
 
 @app.get("/portfolio")
 def get_portfolio():
@@ -107,11 +114,14 @@ def place_order(side: str, req: OrderRequest):
 
     if side == "Sell" and req.amount:
         try:
-            coin = req.symbol.replace("USDT", "")
+            coin = normalize_symbol(req.symbol).upper()
             balance = session.get_wallet_balance(accountType="UNIFIED")
             coin_list = balance["result"]["list"][0]["coin"]
-            match = next((c for c in coin_list if c["coin"] == coin), None)
+
+            match = next((c for c in coin_list if c["coin"].upper() == coin), None)
             available = safe_float(match["availableToWithdraw"]) if match else 0.0
+
+            print(f"🔍 DEBUG: ищем {coin}, найдено: {available}")
 
             if available < req.amount:
                 raise HTTPException(
